@@ -101,9 +101,9 @@ def create_message_with_attachment(sender, to, subject, message_text, file_path)
   with open(file_path, 'rb') as f:
     part = MIMEBase('application', 'octet-stream')
     part.set_payload(f.read())
-    encoders.encode_base64(part)
-    part.add_header('Content-Disposition', f'attachment; filename={os.path.basename(file_path)}')
-    message.attach(part)
+  encoders.encode_base64(part)
+  part.add_header('Content-Disposition', f'attachment; filename={os.path.basename(file_path)}')
+  message.attach(part)
 
   raw_message = base64.urlsafe_b64encode(message.as_bytes()).decode()
   return {'raw': raw_message}

@@ -39,7 +39,7 @@ def send_email():
   message = gmail_api_service.create_message_with_attachment(sender, to_email, subject, body, file_path)
 
   try:
-    response = gmail_api_service.send_message(message, 'me')
+    response = gmail_api_service.send_message('me', message)
     os.remove(file_path)
     return jsonify(response)
   except Exception as e:
