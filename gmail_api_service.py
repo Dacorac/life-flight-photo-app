@@ -108,8 +108,4 @@ def create_message_with_attachment(sender, to, subject, message_text, file_path)
   raw_message = base64.urlsafe_b64encode(message.as_bytes()).decode()
   return {'raw': raw_message}
 
-# service = account_login_service()
-# Call the Gmail API
-# message = create_message(EMAIL_FROM, EMAIL_TO, EMAIL_SUBJECT, EMAIL_CONTENT)
-# sent = send_message(service, 'me', message)
 
