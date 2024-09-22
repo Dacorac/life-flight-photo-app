@@ -2,7 +2,9 @@ import datetime
 import os
 import gmail_api_service
 import image_processor_service
+import salesforce_api_service
 
+from consumer_details import CONSUMER_KEY, CONSUMER_SECRET, USERNAME, PASSWORD
 from flask import Flask, request, jsonify
 from werkzeug.utils import secure_filename
 
@@ -71,6 +73,32 @@ def send_email():
   except Exception as e:
     print(f"Error sending email: {e}")
     return jsonify({'error': 'Unexpected error while sending email'}), 500
+  
+@app.route('/create_visitor_contact', methods=['POST'])
+def create_visitor_contact():
+  # Autheticate salesforce service
+  access_token, instance_url = salesforce_api_service.generate_token(CONSUMER_KEY, CONSUMER_SECRET, USERNAME, PASSWORD)
+
+  contact_data = {
+    "FirstName": request.form.get('first_name'),
+    "LastName": request.form.get('last_name'),
+    "Salutation": request.form.get('salutation'),
+    "Email": request.form.get('email'),
+    "MobilePhone": request.form.get('mobile_phone'),
+    "DoNotCall": True if (request.form.get('opt_out_marketing') == "1") else False,
+    "Do_Not_Call_Lottery__c": True if (request.form.get('opt_out_marketing') == "1") else False,
+    "HasOptedOutOfEmail": True if (request.form.get('opt_out_marketing') == "1") else False,
+    "Mail_Opt_Out__c": True if (request.form.get('opt_out_marketing') == "1") else False,
+    "SMS_Opt_Out__c": True if (request.form.get('opt_out_marketing') == "1") else False
+  }
+
+  try:
+    response = salesforce_api_service.create_contact(access_token, instance_url, contact_data)
+    return jsonify(response)
+  except Exception as e:
+    print(f"Error creating new visitor contact: {e}")
+    return jsonify({'error': 'Unexpected error while saving a new contact'}), 500
+
 
 if __name__ == '__main__':
   app.run(host="localhost", port=8000, debug=True)
