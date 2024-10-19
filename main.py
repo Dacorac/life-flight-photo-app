@@ -8,7 +8,12 @@ from consumer_details import CONSUMER_KEY, CONSUMER_SECRET, USERNAME, PASSWORD
 from flask import Flask, request, jsonify
 from werkzeug.utils import secure_filename
 
+from flask_cors import CORS, cross_origin
+
 app = Flask(__name__)
+cors = CORS(app)
+app.config['CORS_HEADERS'] = 'Content-Type'
+
 app.config['UPLOAD_FOLDER'] = 'uploads'
 dir_actual = os.path.dirname(os.path.abspath(__file__))
 
