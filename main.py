@@ -80,21 +80,23 @@ def send_email():
     return jsonify({'error': 'Unexpected error while sending email'}), 500
   
 @app.route('/create_visitor_contact', methods=['POST'])
+@cross_origin()
 def create_visitor_contact():
   # Autheticate salesforce service
   access_token, instance_url = salesforce_api_service.generate_token(CONSUMER_KEY, CONSUMER_SECRET, USERNAME, PASSWORD)
 
+  raw_data = request.get_json()
+  
   contact_data = {
-    "FirstName": request.form.get('first_name'),
-    "LastName": request.form.get('last_name'),
-    "Salutation": request.form.get('salutation'),
-    "Email": request.form.get('email'),
-    "MobilePhone": request.form.get('mobile_phone'),
-    "DoNotCall": True if (request.form.get('opt_out_marketing') == "1") else False,
-    "Do_Not_Call_Lottery__c": True if (request.form.get('opt_out_marketing') == "1") else False,
-    "HasOptedOutOfEmail": True if (request.form.get('opt_out_marketing') == "1") else False,
-    "Mail_Opt_Out__c": True if (request.form.get('opt_out_marketing') == "1") else False,
-    "SMS_Opt_Out__c": True if (request.form.get('opt_out_marketing') == "1") else False
+    "FirstName": raw_data.get('first_name'),
+    "LastName": raw_data.get('last_name'),
+    "Email": raw_data.get('email'),
+    "MobilePhone": raw_data.get('mobile_phone'),
+    "DoNotCall": True if (raw_data.get('opt_out_marketing') == "1") else False,
+    "Do_Not_Call_Lottery__c": True if (raw_data.get('opt_out_marketing') == "1") else False,
+    "HasOptedOutOfEmail": True if (raw_data.get('opt_out_marketing') == "1") else False,
+    "Mail_Opt_Out__c": True if (raw_data.get('opt_out_marketing') == "1") else False,
+    "SMS_Opt_Out__c": True if (raw_data.get('opt_out_marketing') == "1") else False
   }
 
   try:
