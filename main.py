@@ -3,6 +3,9 @@ import os
 import gmail_api_service
 import image_processor_service
 import salesforce_api_service
+import base64
+from io import BytesIO
+from PIL import Image
 
 from consumer_details import CONSUMER_KEY, CONSUMER_SECRET, USERNAME, PASSWORD
 from flask import Flask, request, jsonify
@@ -21,23 +24,33 @@ dir_actual = os.path.dirname(os.path.abspath(__file__))
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
 @app.route('/')
+@cross_origin()
 def index():
   return "Hello World!"
 
 @app.route('/transform_image', methods=['POST'])
+@cross_origin()
 def transform_image():
-  if 'image' not in request.files:
+  print(request.form)
+  data = request.get_json()
+
+  if 'image' not in data:
     return jsonify({'error': 'No image uploaded'}), 400
   
   # Get the image file from the request
-  image_file = request.files['image']
+  image_data = base64.b64decode(data['image'])
+  image = Image.open(BytesIO(image_data))
   now = datetime.datetime.now()
-  filename = f"{now.strftime('%Y-%m-%d %H-%M-%S')}-{image_file.filename}"
-  image_file.save(os.path.join(dir_actual, filename))
-    
-  removed_background_path = image_processor_service.remove_background(os.path.join(dir_actual, filename), filename)
+  filename = f"{now.strftime('%Y-%m-%d %H-%M-%S')}.png"
+  image_path = os.path.join(dir_actual, filename)
 
-  background_choice = request.form['background_id']
+  # Save image to disk
+  image.save(image_path)
+    
+  removed_background_path = image_processor_service.remove_background(image_path, filename)
+
+  background_choice = data['background_id']
+
   try:
     response = image_processor_service.overlay_images(removed_background_path, background_choice)
     os.remove(os.path.join(dir_actual, filename))
@@ -48,6 +61,7 @@ def transform_image():
 
 
 @app.route('/send_email', methods=['POST'])
+@cross_origin()
 def send_email():
   if 'file' not in request.files:
     return jsonify({"error": "No file part in the request"}), 400
