@@ -6,6 +6,7 @@ import salesforce_api_service
 import base64
 from io import BytesIO
 from PIL import Image
+import re
 
 from consumer_details import CONSUMER_KEY, CONSUMER_SECRET, USERNAME, PASSWORD
 from flask import Flask, request, jsonify
@@ -31,14 +32,19 @@ def index():
 @app.route('/transform_image', methods=['POST'])
 @cross_origin()
 def transform_image():
-  print(request.form)
   data = request.get_json()
+  print(data)
 
   if 'image' not in data:
     return jsonify({'error': 'No image uploaded'}), 400
   
+  # Extract the base64 image string and remove the prefix if it exists
+  base64_image = data['image']
+  # Use a regular expression to remove the base64 prefix (data:image/...;base64,)
+  base64_image = re.sub(r'^data:image\/[a-zA-Z]+;base64,', '', base64_image)
+  
   # Get the image file from the request
-  image_data = base64.b64decode(data['image'])
+  image_data = base64.b64decode(base64_image)
   image = Image.open(BytesIO(image_data))
   now = datetime.datetime.now()
   filename = f"{now.strftime('%Y-%m-%d %H-%M-%S')}.png"
