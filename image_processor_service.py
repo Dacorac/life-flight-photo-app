@@ -12,10 +12,19 @@ def remove_background(input_path, filename):
 
 def overlay_images(input_path, background_id):
   input = Image.open(input_path)
+  print(background_id)
   # change when background images path are defined
-  # background = Image.open(background_id)
-  background = Image.open('background.jpg')
-  background.paste(input, (0,0), mask = input) 
+  background_path = f"background_{background_id}.png"
+  background = Image.open(background_path)
+
+  input = input.rotate(-20, expand=True)
+
+  # Calculate coordinates for centered bottom alignment
+  x = (background.width - input.width) // 2
+  y = background.height - input.height
+
+  # Paste the foreground image onto the background
+  background.paste(input, (x, y - 100), mask=input)
   
   # Saves the output image locally
   final_path = "output.png"

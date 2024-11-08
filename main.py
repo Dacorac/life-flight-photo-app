@@ -33,7 +33,6 @@ def index():
 @cross_origin()
 def transform_image():
   data = request.get_json()
-  print(data)
 
   if 'image' not in data:
     return jsonify({'error': 'No image uploaded'}), 400
