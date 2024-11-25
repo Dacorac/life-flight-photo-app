@@ -14,7 +14,7 @@ def overlay_images(input_path, background_id):
   input = Image.open(input_path)
   print(background_id)
   # change when background images path are defined
-  background_path = f"background_{background_id}.png"
+  background_path = f"background_0{background_id}.png"
   background = Image.open(background_path)
 
   input = input.rotate(-20, expand=True)
@@ -24,7 +24,7 @@ def overlay_images(input_path, background_id):
   y = background.height - input.height
 
   # Paste the foreground image onto the background
-  background.paste(input, (x, y - 100), mask=input)
+  background.paste(input, (x, y + 100), mask=input)
   
   # Saves the output image locally
   final_path = "output.png"
