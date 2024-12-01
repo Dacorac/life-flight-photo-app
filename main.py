@@ -46,7 +46,7 @@ def transform_image():
   image_data = base64.b64decode(base64_image)
   image = Image.open(BytesIO(image_data))
   now = datetime.datetime.now()
-  filename = f"{now.strftime('%Y-%m-%d %H-%M-%S')}.png"
+  filename = f"{now.strftime('%d-%m-%Y %H:%M')}"
   image_path = os.path.join(dir_actual, filename)
 
   # Save image to disk
@@ -125,6 +125,33 @@ def create_visitor_contact():
     print(f"Error creating new visitor contact: {e}")
     return jsonify({'error': 'Unexpected error while saving a new contact'}), 500
 
+@app.route('/create_content_version_record', methods=['POST'])
+@cross_origin()
+def create_content_version_record ():
+  # Authenticate salesforce service 
+  access_token, instance_url = salesforce_api_service.generate_token(CONSUMER_KEY, CONSUMER_SECRET, USERNAME, PASSWORD)
+
+  # extract data from request
+  if 'image' not in request.files:
+    return jsonify({'error': 'No image uploaded'}), 400
+
+  # encode image file in base64
+  image_path = 'output.png'
+
+  with open(image_path, 'rb') as image_file:
+    base64_image = base64.b64encode(image_file.read()).decode('utf-8')
+
+  content_version_data = {
+    'Title': 'New Record image',
+    'PathOnClient': 'image.png',
+    'VersionData': base64_image
+  }
+
+  try:
+    response = salesforce_api_service.upload_image(access_token, instance_url, content_version_data)
+    return jsonify(response)
+  except Exception as e:
+    return jsonify({'error': 'Unexpected error whilesaving new record'}), 500
 
 if __name__ == '__main__':
   app.run(host="localhost", port=8000, debug=True)
