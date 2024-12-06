@@ -6,9 +6,8 @@ def remove_background(input_path, filename):
   output_path = f"{filename}_output.png"
   input = Image.open(input_path)
   output = remove(input)
-  output.save(output_path)
 
-  return output_path
+  return output_path, output
 
 def overlay_images(input_path, background_id):
   input = Image.open(input_path)
@@ -25,12 +24,11 @@ def overlay_images(input_path, background_id):
 
   # Paste the foreground image onto the background
   background.paste(input, (x, y + 100), mask=input)
-  
-  # Saves the output image locally
-  final_path = "output.png"
-  background.save(final_path)
 
+  return background
+
+def encodeBase64Image(image_path):
   # Base64 encode to return image to client
-  with open(final_path, 'rb') as image_file:
+  with open(image_path, 'rb') as image_file:
     base64_bytes_image = base64.b64encode(image_file.read())
   return base64_bytes_image

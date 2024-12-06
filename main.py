@@ -18,11 +18,13 @@ app = Flask(__name__)
 cors = CORS(app)
 app.config['CORS_HEADERS'] = 'Content-Type'
 
+app.config['TEMP_STORAGE'] = 'temporal'
 app.config['UPLOAD_FOLDER'] = 'uploads'
 dir_actual = os.path.dirname(os.path.abspath(__file__))
 
-# Ensure the upload folder exists
+# Ensure the upload folders exist
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
+os.makedirs(app.config['TEMP_STORAGE'], exist_ok=True)
 
 @app.route('/')
 @cross_origin()
@@ -32,37 +34,57 @@ def index():
 @app.route('/transform_image', methods=['POST'])
 @cross_origin()
 def transform_image():
-  data = request.get_json()
-
-  if 'image' not in data:
-    return jsonify({'error': 'No image uploaded'}), 400
-  
-  # Extract the base64 image string and remove the prefix if it exists
-  base64_image = data['image']
-  # Use a regular expression to remove the base64 prefix (data:image/...;base64,)
-  base64_image = re.sub(r'^data:image\/[a-zA-Z]+;base64,', '', base64_image)
-  
-  # Get the image file from the request
-  image_data = base64.b64decode(base64_image)
-  image = Image.open(BytesIO(image_data))
-  now = datetime.datetime.now()
-  filename = f"{now.strftime('%d-%m-%Y %H:%M')}"
-  image_path = os.path.join(dir_actual, filename)
-
-  # Save image to disk
-  image.save(image_path)
-    
-  removed_background_path = image_processor_service.remove_background(image_path, filename)
-
-  background_choice = data['background_id']
-
   try:
-    response = image_processor_service.overlay_images(removed_background_path, background_choice)
-    os.remove(os.path.join(dir_actual, filename))
-    return response
+    data = request.get_json()
+
+    if 'image' not in data:
+      return jsonify({'error': 'No image uploaded'}), 400
+    
+
+    # Use a regular expression to remove the base64 prefix (data:image/...;base64,)
+    base64_image = data['image']
+    base64_image = re.sub(r'^data:image\/[a-zA-Z]+;base64,', '', base64_image)
+    image_data = base64.b64decode(base64_image)
+    image = Image.open(BytesIO(image_data))
+
+    now = datetime.datetime.now()
+    filename = f"{now.strftime('%d-%m-%Y %H:%M')}.png"
+    image_path = os.path.join(app.config['TEMP_STORAGE'], filename)
+
+    # Save original image to disk
+    image.save(image_path)
+      
+    # Removing background and saving output image in disk
+    removed_background_filename, removed_background_image = image_processor_service.remove_background(image_path, filename)
+    removed_background_path = os.path.join(app.config['TEMP_STORAGE'], removed_background_filename)
+    removed_background_image.save(removed_background_path)
+
+    # Overlay background and foreground
+    background_choice = data['background_id']
+    overlay_images = image_processor_service.overlay_images(removed_background_path, background_choice)
+
+    # Save final output image locally
+    new_filename = f"output-{now.strftime('%d-%m-%Y %H:%M')}.png"
+    final_path = os.path.join(app.config['UPLOAD_FOLDER'], new_filename)
+    overlay_images.save(final_path)
+
+    # encode final image in base64
+    final_image = image_processor_service.encodeBase64Image(final_path)
+
+    # Convert to string if necessary
+    if isinstance(final_image, bytes):
+      final_image = final_image.decode('utf-8')
+
+    # Cleanup temporary files
+    os.remove(os.path.join(app.config['TEMP_STORAGE'], removed_background_filename))
+    os.remove(os.path.join(app.config['TEMP_STORAGE'], filename))
+
+    response_data = { 'file': final_image, 'file_path': final_path }
+    return jsonify(response_data), 200
+  
   except Exception as e:
-    print(f"Error processing your image: {e}")
-    return jsonify({'error': 'Error processing your image'}), 500
+    print(f"Error processing the image: {e}")
+    return jsonify({'error': 'Error processing the image', 'details': str(e)}), 500
 
 
 @app.route('/send_email', methods=['POST'])
@@ -127,23 +149,28 @@ def create_visitor_contact():
 
 @app.route('/create_content_version_record', methods=['POST'])
 @cross_origin()
-def create_content_version_record ():
+def create_content_version_record():
   # Authenticate salesforce service 
   access_token, instance_url = salesforce_api_service.generate_token(CONSUMER_KEY, CONSUMER_SECRET, USERNAME, PASSWORD)
 
-  # extract data from request
-  if 'image' not in request.files:
-    return jsonify({'error': 'No image uploaded'}), 400
+  raw_data = request.get_json()
 
   # encode image file in base64
-  image_path = 'output.png'
+  image_path = raw_data.get('file_path')
 
   with open(image_path, 'rb') as image_file:
     base64_image = base64.b64encode(image_file.read()).decode('utf-8')
 
+  user_name = (
+    f"{raw_data.get('first_name', '')}{raw_data.get('last_name', '')}"
+    if (raw_data.get('first_name') is not None or raw_data.get('last_name') is not None)
+    else image_path
+  )
+
+  filename = f'DataCenterFilesUpload_{user_name}'
   content_version_data = {
-    'Title': 'New Record image',
-    'PathOnClient': 'image.png',
+    'Title': filename,
+    'PathOnClient': f'{filename}.png',
     'VersionData': base64_image
   }
 

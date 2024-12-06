@@ -39,9 +39,8 @@ def upload_image(access_token, instance_url, content_version_data):
     'Authorization': f'Bearer {access_token}',
     'Content-Type': 'application/json'
   }
-
-  content_version_url = f'{instance_url}/services/data/v56.0/sobjects/ContentDocumentLink'
-
+  
+  content_version_url = f'{instance_url}/services/data/v56.0/sobjects/ContentVersion'
   respose = requests.post(content_version_url, json=content_version_data, headers=headers)
 
   return respose.json()
