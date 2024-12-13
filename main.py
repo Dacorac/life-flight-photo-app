@@ -120,65 +120,43 @@ def send_email():
     print(f"Error sending email: {e}")
     return jsonify({'error': 'Unexpected error while sending email'}), 500
   
-@app.route('/create_visitor_contact', methods=['POST'])
-@cross_origin()
-def create_visitor_contact():
-  # Autheticate salesforce service
-  access_token, instance_url = salesforce_api_service.generate_token(CONSUMER_KEY, CONSUMER_SECRET, USERNAME, PASSWORD)
 
-  raw_data = request.get_json()
-  
-  contact_data = {
-    "FirstName": raw_data.get('first_name'),
-    "LastName": raw_data.get('last_name'),
-    "Email": raw_data.get('email'),
-    "MobilePhone": raw_data.get('mobile_phone'),
-    "DoNotCall": True if (raw_data.get('opt_out_marketing') == "1") else False,
-    "Do_Not_Call_Lottery__c": True if (raw_data.get('opt_out_marketing') == "1") else False,
-    "HasOptedOutOfEmail": True if (raw_data.get('opt_out_marketing') == "1") else False,
-    "Mail_Opt_Out__c": True if (raw_data.get('opt_out_marketing') == "1") else False,
-    "SMS_Opt_Out__c": True if (raw_data.get('opt_out_marketing') == "1") else False
-  }
-
+@app.route('/create_contact_with_image', methods=['POST'])
+def create_contact_with_image():
+  """
+  Creates a contact, uploads an image, and links the image to the contact record.
+  """
   try:
-    response = salesforce_api_service.create_contact(access_token, instance_url, contact_data)
-    return jsonify(response)
+    # Extract data from the request
+    contact_data = request.json.get('contact_data')
+    file_data = request.json.get('file_data')
+
+    # Authenticate with Salesforce
+    access_token, instance_url = salesforce_api_service.generate_token(CONSUMER_KEY, CONSUMER_SECRET, USERNAME, PASSWORD)
+
+    # Create a new Contact
+    contact_response = salesforce_api_service.create_contact(access_token, instance_url, contact_data)
+    contact_id = contact_response['id']  # Extract the Contact record ID
+
+    # Upload the image
+    file_response = salesforce_api_service.upload_image(access_token, instance_url, file_data)
+    content_version_id = file_response['id']  # Extract ContentVersion ID
+
+    # Retrieve the ContentDocumentId
+    content_document_id = salesforce_api_service.get_content_document_id(access_token, instance_url, content_version_id)
+
+    # Link the file to the Contact record
+    link_response = salesforce_api_service.create_content_document_link(access_token, instance_url, content_document_id, contact_id)
+
+    return jsonify({
+        'contact': contact_response,
+        'file_upload': file_response,
+        'content_document_link': link_response
+    }), 200
+
   except Exception as e:
-    print(f"Error creating new visitor contact: {e}")
-    return jsonify({'error': 'Unexpected error while saving a new contact'}), 500
-
-@app.route('/create_content_version_record', methods=['POST'])
-@cross_origin()
-def create_content_version_record():
-  # Authenticate salesforce service 
-  access_token, instance_url = salesforce_api_service.generate_token(CONSUMER_KEY, CONSUMER_SECRET, USERNAME, PASSWORD)
-
-  raw_data = request.get_json()
-
-  # encode image file in base64
-  image_path = raw_data.get('file_path')
-
-  with open(image_path, 'rb') as image_file:
-    base64_image = base64.b64encode(image_file.read()).decode('utf-8')
-
-  user_name = (
-    f"{raw_data.get('first_name', '')}{raw_data.get('last_name', '')}"
-    if (raw_data.get('first_name') is not None or raw_data.get('last_name') is not None)
-    else image_path
-  )
-
-  filename = f'DataCenterFilesUpload_{user_name}'
-  content_version_data = {
-    'Title': filename,
-    'PathOnClient': f'{filename}.png',
-    'VersionData': base64_image
-  }
-
-  try:
-    response = salesforce_api_service.upload_image(access_token, instance_url, content_version_data)
-    return jsonify(response)
-  except Exception as e:
-    return jsonify({'error': 'Unexpected error whilesaving new record'}), 500
+    # Handle errors
+    return jsonify({'error': str(e)}), 400
 
 if __name__ == '__main__':
   app.run(host="localhost", port=8000, debug=True)
