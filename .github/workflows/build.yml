@@ -32,8 +32,6 @@ jobs:
             --add-data=image_processor_service.py:. \
             --add-data=salesforce_api_service.py:. \
             --add-data=static:static \
-            --name=main \
-            --distpath dist/windows_dist \
             main.py
       - name: List dist directory
         run: ls -la dist/
@@ -42,4 +40,4 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: my-executable
-          path: dist/windows_dist/main
+          path: dist/*
