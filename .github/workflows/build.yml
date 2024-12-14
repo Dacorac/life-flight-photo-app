@@ -33,6 +33,8 @@ jobs:
             --add-data=salesforce_api_service.py:. \
             --add-data=static:static \
             main.py
+      - name: List dist directory
+        run: ls -la dist/
 
       - name: Upload Executable
         uses: actions/upload-artifact@v3
