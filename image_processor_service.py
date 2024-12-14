@@ -1,6 +1,7 @@
 from rembg import remove
 from PIL import Image
 import base64
+import os
 
 def remove_background(input_path, filename):
   output_path = f"{filename}_output.png"
