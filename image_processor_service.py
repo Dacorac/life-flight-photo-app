@@ -13,7 +13,7 @@ def overlay_images(input_path, background_id):
   input = Image.open(input_path)
   print(background_id)
   # change when background images path are defined
-  background_path = f"background_0{background_id}.png"
+  background_path = f"static/background_0{background_id}.png"
   background = Image.open(background_path)
 
   input = input.rotate(-20, expand=True)
