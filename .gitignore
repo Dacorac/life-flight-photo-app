@@ -1,7 +1,10 @@
 token.json
 credentials.json
+consumer_details.py
 
 
 **/__pycache__/
 
 uploads
+temporal
+original
