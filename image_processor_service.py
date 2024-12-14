@@ -12,8 +12,11 @@ def remove_background(input_path, filename):
 def overlay_images(input_path, background_id):
   input = Image.open(input_path)
   print(background_id)
+
   # change when background images path are defined
-  background_path = f"static/background_0{background_id}.png"
+  dir_actual = os.path.dirname(os.path.abspath(__file__))
+  background_path = os.path.join(dir_actual, f"static/background_0{background_id}.png")
+  print(background_path)
   background = Image.open(background_path)
 
   input = input.rotate(-20, expand=True)
