@@ -1,0 +1,39 @@
+name: Build Windows Executable
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Set Up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: 3.9
+
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pyinstaller
+
+      - name: Build Executable
+        run: |
+          pyinstaller --onefile \
+            --add-data "image_processor_service.py;." \
+            --add-data "salesforce_api_service.py;." \
+            --add-data "static;static" \
+            main.py
+
+
+      - name: Upload Executable
+        uses: actions/upload-artifact@v3
+        with:
+          name: my-executable
+          path: dist/life-flight-green-screen.exe
