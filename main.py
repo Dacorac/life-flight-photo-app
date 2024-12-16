@@ -1,6 +1,5 @@
 import datetime
 import os
-import gmail_api_service
 import image_processor_service
 import salesforce_api_service
 import base64
@@ -85,41 +84,6 @@ def transform_image():
   except Exception as e:
     print(f"Error processing the image: {e}")
     return jsonify({'error': 'Error processing the image', 'details': str(e)}), 500
-
-
-@app.route('/send_email', methods=['POST'])
-@cross_origin()
-def send_email():
-  if 'file' not in request.files:
-    return jsonify({"error": "No file part in the request"}), 400
-  
-  file = request.files['file']
-
-  if file.filename == '':
-    return jsonify({"error": "No selected file"}), 400
-  
-  filename = secure_filename(file.filename)
-  file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-  file.save(file_path)
-
-  sender = request.form.get('sender', '')
-  subject = request.form.get('subject', 'No Subject')
-  body = request.form.get('body', '')
-  to_email = request.form.get('to_email')
-
-  if not to_email:
-    return jsonify({"error": "Recipient email is required"}), 400
-
-  message = gmail_api_service.create_message_with_attachment(sender, to_email, subject, body, file_path)
-
-  try:
-    response = gmail_api_service.send_message('me', message)
-    os.remove(file_path)
-    return jsonify(response)
-  except Exception as e:
-    print(f"Error sending email: {e}")
-    return jsonify({'error': 'Unexpected error while sending email'}), 500
-  
 
 @app.route('/create_contact_with_image', methods=['POST'])
 def create_contact_with_image():
