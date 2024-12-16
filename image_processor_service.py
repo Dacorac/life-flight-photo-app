@@ -17,17 +17,16 @@ def overlay_images(input_path, background_id):
   # change when background images path are defined
   dir_actual = os.path.dirname(os.path.abspath(__file__))
   background_path = os.path.join(dir_actual, f"static/background_0{background_id}.png")
-  print(background_path)
   background = Image.open(background_path)
 
-  input = input.rotate(-20, expand=True)
+  # input = input.rotate(-20, expand=True)
 
   # Calculate coordinates for centered bottom alignment
   x = (background.width - input.width) // 2
   y = background.height - input.height
 
   # Paste the foreground image onto the background
-  background.paste(input, (x, y + 100), mask=input)
+  background.paste(input, (x + 150, y + 100), mask=input)
 
   return background
 
