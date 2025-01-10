@@ -7,7 +7,7 @@ on:
 
 jobs:
   build:
-    runs-on: macos-latest
+    runs-on: windows-2019
 
     steps:
       - name: Checkout Code
@@ -39,5 +39,5 @@ jobs:
       - name: Upload Executable
         uses: actions/upload-artifact@v3
         with:
-          name: my-executable
-          path: dist/*
+          name: lifelfight_server
+          path: dist/lifelfight_server.exe
