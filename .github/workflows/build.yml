@@ -7,7 +7,7 @@ on:
 
 jobs:
   build:
-    runs-on: windows-2019
+    runs-on: windows-latest
 
     steps:
       - name: Checkout Code
@@ -33,11 +33,9 @@ jobs:
             --add-data=salesforce_api_service.py:. \
             --add-data=static:static \
             main.py
-      - name: List dist directory
-        run: ls -la dist/
 
       - name: Upload Executable
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: lifelfight_server
           path: dist/lifelfight_server.exe
