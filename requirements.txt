@@ -91,9 +91,6 @@ pyinstaller==6.11.1
 pyinstaller-hooks-contrib==2024.10
 PyMatting==1.1.12
 pyparsing==3.1.2
-PyQt5==5.15.11
-pyqt5==5.15.14
-PyQt5_sip==12.15.0
 python-dateutil==2.9.0.post0
 pytz==2024.2
 PyYAML==6.0.2
