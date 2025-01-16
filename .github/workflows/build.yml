@@ -28,11 +28,12 @@ jobs:
 
       - name: Build Executable
         run: |
-          pyinstaller --onefile \
-            --add-data=image_processor_service.py:. \
-            --add-data=salesforce_api_service.py:. \
-            --add-data=static:static \
+          pyinstaller --onefile ^
+            --add-data=image_processor_service.py;. ^
+            --add-data=salesforce_api_service.py;. ^
+            --add-data=static;static ^
             main.py
+
 
       - name: Upload Executable
         uses: actions/upload-artifact@v4
