@@ -34,4 +34,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: lifelfight_server
-          path: dist/lifelfight_server.exe
+          path: dist/*
