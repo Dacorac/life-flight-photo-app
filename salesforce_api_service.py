@@ -38,7 +38,8 @@ def create_contact(access_token, instance_url, contact_data_input):
     "Do_Not_Call_Lottery__c": True if (contact_data_input.get('opt_out_marketing') == "1") else False,
     "HasOptedOutOfEmail": True if (contact_data_input.get('opt_out_marketing') == "1") else False,
     "Mail_Opt_Out__c": True if (contact_data_input.get('opt_out_marketing') == "1") else False,
-    "SMS_Opt_Out__c": True if (contact_data_input.get('opt_out_marketing') == "1") else False
+    "SMS_Opt_Out__c": True if (contact_data_input.get('opt_out_marketing') == "1") else False,
+    "Data_Source__c": "Data Centre"
   }
 
   # POST request to create a Contact object
@@ -66,7 +67,7 @@ def upload_image(access_token, instance_url, file_data_input):
     else image_path
   )
 
-  filename = f'DataCenterFilesUpload_{user_name}'
+  filename = f'DataCentreFilesUpload_{user_name}'
   content_version_data = {
     'Title': filename,
     'PathOnClient': f'{filename}.png',
