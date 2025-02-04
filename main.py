@@ -7,11 +7,15 @@ from io import BytesIO
 from PIL import Image
 import re
 
-from consumer_details import CONSUMER_KEY, CONSUMER_SECRET, USERNAME, PASSWORD
+# from consumer_details import CONSUMER_KEY, CONSUMER_SECRET, USERNAME, PASSWORD
 from flask import Flask, request, jsonify
-from werkzeug.utils import secure_filename
 
 from flask_cors import CORS, cross_origin
+
+CONSUMER_KEY = os.environ["CONSUMER_KEY"]
+CONSUMER_SECRET = os.environ["CONSUMER_SECRET"]
+USERNAME = os.environ["USERNAME"]
+PASSWORD = os.environ["PASSWORD"]
 
 app = Flask(__name__)
 cors = CORS(app)
