@@ -7,15 +7,14 @@ from io import BytesIO
 from PIL import Image
 import re
 
-# from consumer_details import CONSUMER_KEY, CONSUMER_SECRET, USERNAME, PASSWORD
 from flask import Flask, request, jsonify
-
 from flask_cors import CORS, cross_origin
+# from consumer_details import CONSUMER_KEY, CONSUMER_SECRET, USERNAME, PASSWORDß
 
 CONSUMER_KEY = os.environ["CONSUMER_KEY"]
 CONSUMER_SECRET = os.environ["CONSUMER_SECRET"]
-USERNAME = os.environ["USERNAME"]
-PASSWORD = os.environ["PASSWORD"]
+USERNAME = os.environ["SF_USERNAME"]
+PASSWORD = os.environ["SF_PASSWORD"]
 
 app = Flask(__name__)
 cors = CORS(app)
@@ -123,8 +122,8 @@ def create_contact_with_image():
     }), 200
 
   except Exception as e:
-    # Handle errors
-    return jsonify({'error': str(e)}), 400
+    print(f"Error saving the new contact: {e}")
+    return jsonify({'error': 'Error saving the new contact', 'details': str(e)}), 500
 
 if __name__ == '__main__':
   app.run(host="localhost", port=8000, debug=True)
